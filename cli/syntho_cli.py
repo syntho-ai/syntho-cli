@@ -374,7 +374,9 @@ def dc_deployment(
             "Cleaning things up", fg="red"
         )
         click.echo(f"\n\n{deployment_failed_text} - {cleaningthingsup_text}", err=True)
-        is_destroyed = dc_deployment_manager.cleanup(scripts_dir, result.deployment_id, result.deployment_status)
+        # TODO debugging
+        # is_destroyed = dc_deployment_manager.cleanup(scripts_dir, result.deployment_id, result.deployment_status)
+        is_destroyed = True
         if not is_destroyed:
             destroy_failed_text = click.style(
                 f"Error destroying deployment\n", fg="red"

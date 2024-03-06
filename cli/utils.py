@@ -7,6 +7,8 @@ import select
 import threading
 import sys
 import glob
+import socket
+import tarfile
 
 from queue import Queue, Empty
 from functools import wraps
@@ -318,3 +320,55 @@ def logs(scripts_dir, deployment_id_or_process_name, lines, follow, is_deploymen
     except KeyboardInterrupt:
         observer.stop()
         observer.join()
+
+
+def make_utilities_dir(scripts_dir):
+    utilities_dir = generate_utilities_dir(scripts_dir)
+    if not os.path.exists(utilities_dir):
+        os.makedirs(utilities_dir)
+
+
+def generate_utilities_dir(scripts_dir):
+    return f"{scripts_dir}/utilities"
+
+
+def check_acquired(file_dir):
+    path = f"{file_dir}/.lock"
+    if os.path.exists(path):
+        return True
+    return False
+
+
+def acquire(file_dir):
+    path = f"{file_dir}/.lock"
+    with open(path, "a") as _:
+        pass
+
+
+def release(file_dir):
+    path = f"{file_dir}/.lock"
+    os.remove(path)
+
+
+def set_status(file_dir, status):
+    status_file_path = f"{file_dir}/status"
+    with open(status_file_path, "w") as file:
+        file.write(status)
+
+
+def check_port(host, port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex((host, port))
+
+
+def find_available_port(start_port, end_port, host="localhost"):
+    for port in range(start_port, end_port + 1):
+        if check_port(host, port):
+            return port
+
+    return None
+
+
+def make_tarfile(output_filename, source_dir):
+    with tarfile.open(output_filename, "w:gz") as tar:
+        tar.add(source_dir, arcname=os.path.basename(source_dir))
